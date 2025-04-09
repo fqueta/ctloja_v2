@@ -1,0 +1,6 @@
+<form action="{{ route('import') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="file" required />
+    <input type="text" name="tab" required />
+    <button type="submit">Importar</button>
+</form>
