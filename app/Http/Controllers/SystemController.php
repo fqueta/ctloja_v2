@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
+    // public function __construct()
+    // {
+    //     $this->middleware('auth');
+    // }
     public function tentantCreate(Request $request){
         $id = $request->get('id');
         $domain = $request->get('domain');
