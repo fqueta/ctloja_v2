@@ -53,6 +53,33 @@ class MenuSeeder extends Seeder
                 'pai'=>'cad-clientes'
             ],
             [
+                'categoria'=>'FINANCEIRO',
+                'description'=>'Financeiro antigo',
+                'icon'=>'fas fa-wallet',
+                'actived'=>true,
+                'url'=>'ger-financeiro',
+                'route'=>'',
+                'pai'=>''
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Contas a receber',
+                'icon'=>'fas fa-list',
+                'actived'=>true,
+                'url'=>'receber',
+                'route'=>'receber.index',
+                'pai'=>'ger-financeiro'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Contas a pagar',
+                'icon'=>'fas fa-list',
+                'actived'=>true,
+                'url'=>'pagar',
+                'route'=>'pagar.index',
+                'pai'=>'ger-financeiro'
+            ],
+            [
                 'categoria'=>'SITE',
                 'description'=>'Gerenciar site',
                 'icon'=>'fas fa-globe',
