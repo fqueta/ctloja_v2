@@ -18,21 +18,22 @@ class ImportAll implements ToCollection, WithHeadingRow
     /**
     * @param Collection $collection
     */
-    protected $tab;
+    protected $tabs;
 
-    public function __construct(string $tab)
+    public function __construct(array $tab)
     {
-        $this->tab = $tab;
+        $this->tabs = $tab;
     }
     public function collection(Collection $rows)
     {
         $data = [];
         $ret = [];
-        // dd($rows);
-        if($this->tab=='lcf_entradas'){
-            $ret = (new ImportController)->inport_nubank_lcf_entradas($rows);
-        }
-        dd($ret);
+        // if($this->tab=='lcf_entradas'){
+        //     $ret = (new ImportController)->inport_nubank_lcf_entradas($rows);
+        // }
+        $ret = (new ImportController)->inport_nubank_entradas_saidas($rows,$this->tabs);
+        // dd($ret);
+        return $ret;
         // Inserção em lote (bulk insert)
         // DB::table('users')->insert($data);
     }

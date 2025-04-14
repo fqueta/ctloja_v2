@@ -2,10 +2,14 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\Tenant\MenuSeeder;
+use Database\Seeders\tenant\MenuSeeder;
+use Database\Seeders\tenant\PermissionSeeder;
+use Database\Seeders\tenant\QoptionSeeder;
+use Database\Seeders\tenant\tagSeeder;
+use Database\Seeders\tenant\UserSeeder;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+class DatabaseSeederTenant extends Seeder
 {
     /**
      * Seed the application's database.
@@ -20,14 +24,14 @@ class DatabaseSeeder extends Seeder
         // dd(tenant());
         $this->call([
             // DocumentSeeder::class,
-            tagSeeder::class,
             MenuSeeder::class,
+            tagSeeder ::class,
             PermissionSeeder::class,
-            QoptionSeeder::class,
+            QoptionSeeder ::class,
             UserSeeder::class,
-            escolaridadeSeeder::class,
-            // estadocivilSeeder::class,
-            ProfissaoSeeder::class,
+            // escolaridadeSeeder::class,
+            // // estadocivilSeeder::class,
+            // ProfissaoSeeder::class,
         ]);
 
     }

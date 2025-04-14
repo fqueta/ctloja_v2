@@ -81,6 +81,7 @@
                 }
             @endphp
 
+
             <tr style="cursor: pointer" ondblclick="window.location='{{ $linkDbckp}}'"  id="tr_{{$val->id}}" class="@if (isset($_GET['idCad']) && $_GET['idCad']==$val->id) table-info @endif" title="DÊ DOIS CLIQUES PARA ABRIR">
                     <td>
                         <input type="checkbox" class="checkbox" onclick="color_select1_0(this.checked,this.value);" value="{{$val->id}}" name="check_{{$val->id}}" id="check_{{$val->id}}">
@@ -213,6 +214,19 @@
                                 @if (isset($cp[1]))
                                     <td class="{{$cp[1]}}" title="{{ @$val[$cp[0]][$cp[1]] }}">{{ $td }}</td>
                                 @endif
+                            @elseif (isset($vd['type']) && ($vd['type']=='moeda'))
+                                @php
+
+                                    if(isset($vd['arr_opc']) && isset($vd['arr_opc'][$val->$kd])){
+                                        $td = $vd['arr_opc'][$val->$kd];
+                                    }else{
+                                        $td = $val->$kd;
+                                    }
+                                @endphp
+
+                                <td class="{{str_replace('[]','',$kd)}}" title="{{$td}}">
+                                    {{ App\Qlib\Qlib::valor_moeda($td,'')}}
+                                </td>
                             @elseif (isset($vd['type']) && ($vd['type']=='date'))
                                 @php
 
@@ -236,7 +250,7 @@
                                 @endphp
 
                                 <td class="{{str_replace('[]','',$kd)}}" title="{{$td}}">
-                                    {{$td}}
+                                    {!! $td !!}
                                 </td>
                             @endif
                         @endif
@@ -253,3 +267,4 @@
         @endif
     </tbody>
 </table>
+

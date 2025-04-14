@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\tenant;
 
 use App\Models\Qoption;
 use Illuminate\Database\Seeder;

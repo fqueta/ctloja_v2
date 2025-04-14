@@ -1,8 +1,7 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\tenant;
 
-use App\Models\Contrato;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

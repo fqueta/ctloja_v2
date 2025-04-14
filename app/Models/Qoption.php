@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 class Qoption extends Model
 {
     use HasFactory,Notifiable;
+    protected $table = 'options';
     protected $fillable = [
         'token',
         'nome',

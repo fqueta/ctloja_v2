@@ -27,7 +27,7 @@ class CreateFinanceiroTable extends Migration
             $table->integer('id_responsavel')->nullable();
             $table->enum('pago',['n','s']);
             // $table->datetime('data');
-            $table->string('token',50)->nullable();;
+            $table->string('token',50)->nullable();
             $table->datetime('atualizado')->default("1900-01-01 00:00:00");
             $table->enum('repetir',['n','s']);
             $table->string('vezes',10)->nullable();

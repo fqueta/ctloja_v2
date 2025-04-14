@@ -23,13 +23,13 @@ class TenantDatabaseSeeder extends Seeder
         // //dd($company);
         // Tenant::setTenant($company);
         $this->call([
-            UserTenantSeeder::class,
+            // UserTenantSeeder::class,
             escolaridadeSeeder::class,
             estadocivilSeeder::class,
             ProfissaoSeeder::class,
             // PrefeiturasSeeder::class,
             tagSeeder::class,
-            MenuTenantSeeder::class,
+            // MenuTenantSeeder::class,
             PermissionSeeder::class,
             QoptionSeeder::class,
 

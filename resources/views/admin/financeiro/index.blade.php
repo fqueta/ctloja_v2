@@ -6,7 +6,6 @@
 @section('content')
   <!--<p>Selecione os publicadores do seu familia para enviar o relatorio para o secretário</p>-->
   <div class="row">
-
     @include('qlib.config_exibe')
       <div class="col-md-12 mens">
     </div>
@@ -18,6 +17,7 @@
             ]
     ])
     @endcan
+
     <div class="col-md-12" id="lista">
       <div class="card">
         <div class="card-header">

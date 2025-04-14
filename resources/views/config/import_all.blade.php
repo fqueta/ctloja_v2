@@ -22,6 +22,17 @@
                 </div>
             </div>
             <div class="card-body">
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('erro') }}
+                    </div>
+                @endif
 
                 @include('config.import')
             </div>
@@ -37,7 +48,7 @@
 
 @section('js')
     @include('qlib.jslib')
-    <script type="text/javascript">
+    {{-- <script type="text/javascript">
         $(function(){
             $('a.print-card').on('click',function(e){
                 openPageLink(e,$(this).attr('href'),"{{date('Y')}}");
@@ -46,8 +57,29 @@
             $('[mask-cnpj]').inputmask('99.999.999/9999-99');
             $('[mask-data]').inputmask('99/99/9999');
             $('[mask-cep]').inputmask('99.999-999');
-        });
+            $('#form-import').on('submit', function(e) {
+                e.preventDefault(); // Impede o envio tradicional do form
 
-    </script>
+                let formData = new FormData(this); // Cria objeto com os dados do form
+                let url = $('#form-import').attr('action');
+                console.log(formData);
+                $.ajax({
+                    url: url,           // sua rota no backend
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,       // NÃO definir manualmente
+                    processData: false,       // NÃO transformar em query string
+                    success: function(response) {
+                    console.log('Sucesso!', response);
+                    },
+                    error: function(xhr, status, error) {
+                    console.error('Erro:', error);
+                    }
+                });
+            });
+
+        });
+    </script> --}}
     {{-- @include('clientes.js_submit') --}}
+
 @stop

@@ -53,7 +53,7 @@ class portalController extends Controller
         $this->label = 'Portal';
         $this->view = 'portal';
         $this->i_wp = Qlib::qoption('i_wp');//indegração com Wp s para sim
-        $this->wp_api = new ApiWpController();
+        // $this->wp_api = new ApiWpController();
         //$this->routeIndex = route('internautas.index');
     }
     public function index(Request $request)

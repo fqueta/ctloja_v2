@@ -110,9 +110,9 @@ Route::middleware([
         Route::resource('f_pagamento','\App\Http\Controllers\admin\PostsController',['parameters' => [
             'f_pagamento' => 'id'
         ]]);
-        Route::resource('api-wp','\App\Http\Controllers\wp\ApiWpController',['parameters' => [
-            'api-wp' => 'id'
-        ]]);
+        // Route::resource('api-wp','\App\Http\Controllers\wp\ApiWpController',['parameters' => [
+        //     'api-wp' => 'id'
+        // ]]);
         Route::resource('pages','\App\Http\Controllers\admin\PostsController',['parameters' => [
             'pages' => 'id'
         ]]);
@@ -128,11 +128,13 @@ Route::middleware([
         Route::resource('tags','\App\Http\Controllers\admin\TagsController',['parameters' => [
             'tags' => 'id'
         ]]);
+        Route::get('sics/relatorios', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('financeiro.receber');
+        Route::get('sics/relatorios-', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('financeiro.pagar');
         //inicio Rotas módulo Sic
-        Route::resource('sic','\App\Http\Controllers\admin\sicController',['as'=>'admin','parameters' => ['sic' => 'id']]);
-        Route::get('sics/relatorios', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('admin.sic.relatorios');
-        Route::get('sics/config', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config');
-        Route::get('sics/config/{url}', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config.edit');
+        // Route::resource('sic','\App\Http\Controllers\admin\sicController',['as'=>'admin','parameters' => ['sic' => 'id']]);
+        // Route::get('sics/relatorios', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('admin.sic.relatorios');
+        // Route::get('sics/config', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config');
+        // Route::get('sics/config/{url}', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config.edit');
         //Fim Rotas módulo Sic
         Route::prefix('uploads')->group(function(){
             Route::get('/',[uploadController::class,'index'])->name('uploads.index');
@@ -172,12 +174,19 @@ Route::middleware([
             Route::resource('despesas', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
                 'despesas' => 'id'
             ]]);
+            Route::resource('receber', '\App\Http\Controllers\admin\FinanceiroControllerAntigo', ['parameters'=>[
+                'receber' => 'id'
+            ]]);
+            Route::resource('pagar', '\App\Http\Controllers\admin\FinanceiroControllerAntigo', ['parameters'=>[
+                'pagar' => 'id'
+            ]]);
             Route::resource('extrato', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
                 'extrato' => 'id'
             ]]);
             // Route::get('receitas', [FinanceiroController::class,'receitas'])->name('financeiro.receitas');
             Route::get('despesas', [FinanceiroController::class,'despesas'])->name('financeiro.despesas');
-            Route::get('extrato', [FinanceiroController::class,'extrato'])->name('financeiro.extrato');
+            // Route::get('receber', [FinanceiroController::class,'movimento_antigo'])->name('financeiro.receber');
+            // Route::get('pagar', [FinanceiroController::class,'movimento_antigo'])->name('financeiro.pagar');
         });
 
         Route::get('/test', [TesteController::class,'index']);

@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\UserController;
-use App\Models\_upload;
-use App\Models\admin\financeiro;
 use App\Qlib\Qlib;
+use App\Models\admin\financeiro;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\UserController;
 use stdClass;
 
-class FinanceiroController extends Controller
+class FinanceiroControllerAntigo extends Controller
 {
     public $user;
     public $sec;
@@ -34,7 +33,7 @@ class FinanceiroController extends Controller
         $this->tab = 'financeiro';
         $this->routa = $this->sec2;
         $this->title = ucwords($seg2);
-        $this->user = Auth::user();
+        $this->user =  Auth::user();
         $this->view = 'admin.financeiro';
         $this->label = ucwords($this->sec2);
         if($this->sec2=='receber'){
@@ -44,7 +43,7 @@ class FinanceiroController extends Controller
             $this->taba = 'lcf_saidas';
         }
     }
-    public function queryContas0($get=[],$config=false)
+    public function queryContas($get=[],$config=false)
     {
 
         $ret = false;
@@ -66,7 +65,7 @@ class FinanceiroController extends Controller
             // $contas = financeiro::whereNull('id_fatura_fixa')->
             // where('tipo',$this->sec2)->
             // orderBy('vencimento',$config['order']);
-        }elseif($this->sec2=='despesas'){
+        }elseif($this->sec2=='pagar'){
             $startDate = Carbon::createFromFormat('Y-m-d', $dataI)->startOfDay();
             $endDate = Carbon::createFromFormat('Y-m-d', $dataF)->endOfDay();
             $contas = financeiro::whereBetween('vencimento',[$startDate,$endDate])->
@@ -81,100 +80,6 @@ class FinanceiroController extends Controller
         ->where('excluido','=','n')
         ->where('deletado','=','n')
         ->orderBy('id',$config['order']);
-
-        $contas_totais = new stdClass;
-        $campos = $this->campos_antigos();
-        $tituloTabela = 'Lista de todos cadastros';
-        $arr_titulo = false;
-        if(isset($get['filter'])){
-                $titulo_tab = false;
-                $i = 0;
-                foreach ($get['filter'] as $key => $value) {
-                    if(!empty($value)){
-                        if($key=='id'){
-                            $contas->where($key,'LIKE', $value);
-                            $titulo_tab .= 'Todos com *'. $campos[$key]['label'] .'% = '.$value.'& ';
-                            $arr_titulo[$campos[$key]['label']] = $value;
-                        }else{
-                            $contas->where($key,'LIKE','%'. $value. '%');
-                            if($campos[$key]['type']=='select'){
-                                $value = $campos[$key]['arr_opc'][$value];
-                            }
-                            $arr_titulo[$campos[$key]['label']] = $value;
-                            $titulo_tab .= 'Todos com *'. $campos[$key]['label'] .'% = '.$value.'& ';
-                        }
-                        $i++;
-                    }
-                }
-                if($titulo_tab){
-                    $tituloTabela = 'Lista de: &'.$titulo_tab;
-                                //$arr_titulo = explode('&',$tituloTabela);
-                }
-                $cts = $contas;
-                if($config['limit']=='todos'){
-                    $contas = $contas->get();
-                }else{
-                    $contas = $contas->paginate($config['limit']);
-                }
-        }else{
-            $resum = clone $contas;
-            $cts = $contas;
-            if($config['limit']=='todos'){
-                $contas = $contas->get();
-            }else{
-                $contas = $contas->paginate($config['limit']);
-            }
-        }
-        $contas_totais->todos = $cts->count();
-        // $contas_totais->esteMes = $cts->whereYear('post_date', '=', $ano)->whereMonth('post_date','=',$mes)->count();
-        $contas_totais->pagos = $resum->where('pago','=','s')->count();
-        $contas_totais->apagar = $resum->where('pago','=','n')->count();
-        $ret['contas'] = $contas;
-        $ret['contas_totais'] = $contas_totais;
-        $ret['arr_titulo'] = $arr_titulo;
-        $ret['campos'] = $campos;
-        $ret['config'] = $config;
-        // $ret['post_type'] = $this->post_type;
-        $ret['tituloTabela'] = $tituloTabela;
-        $ret['config']['resumo'] = [
-            'todos_pagos'=>['label'=>'Todos pagos','value'=>$contas_totais->pagos,'icon'=>'fas fa-thmbs-up'],
-            'todos_apagar'=>['label'=>'Cadastros apagar','value'=>$contas_totais->apagar,'icon'=>'fas fa-fa-thmbs-down'],
-            // 'todos_ativos'=>['label'=>'Cadastros ativos','value'=>$contas_totais->ativos,'icon'=>'fas fa-check'],
-            // 'todos_inativos'=>['label'=>'Cadastros inativos','value'=>$contas_totais->inativos,'icon'=>'fas fa-archive'],
-        ];
-        return $ret;
-    }
-    public function queryContas($get=false,$config=false)
-    {
-
-        $ret = false;
-        $get = isset($_GET) ? $_GET:[];
-        $ano = date('Y');
-        $mes = date('m');
-        $ultimoDiaMes = Qlib::ultimoDiaMes($mes,$ano);
-        $dataI = isset($get['dataI']) ? $get['dataI'] : date('Y-m').'-01';
-        $dataF = isset($get['dataF']) ? $get['dataF'] : $ano.'-'.$mes.'-'.$ultimoDiaMes;
-        //$todasFamilias = Familia::where('excluido','=','n')->where('deletado','=','n');
-        $config = [
-            'limit'=>isset($get['limit']) ? $get['limit']: 50,
-            'order'=>isset($get['order']) ? $get['order']: 'desc',
-        ];
-        if($this->sec2=='receitas'){
-            $startDate = Carbon::createFromFormat('Y-m-d', $dataI)->startOfDay();
-            $endDate = Carbon::createFromFormat('Y-m-d', $dataF)->endOfDay();
-            // $contas = financeiro::whereBetween('vencimento',[$startDate,$endDate])->
-            $contas = financeiro::whereNull('id_fatura_fixa')->
-            where('tipo',$this->sec2)->
-            orderBy('vencimento',$config['order']);
-        }elseif($this->sec2=='despesas'){
-            $startDate = Carbon::createFromFormat('Y-m-d', $dataI)->startOfDay();
-            $endDate = Carbon::createFromFormat('Y-m-d', $dataF)->endOfDay();
-            $contas = financeiro::whereBetween('vencimento',[$startDate,$endDate])->
-            where('tipo',$this->sec2)->
-            orderBy('vencimento',$config['order']);
-
-        }
-        //$contas =  DB::table('posts')->where('excluido','=','n')->where('deletado','=','n')->orderBy('id',$config['order']);
 
         $contas_totais = new stdClass;
         $campos = $this->campos();
@@ -238,6 +143,7 @@ class FinanceiroController extends Controller
         ];
         return $ret;
     }
+
     public function receitas(Request $request){
         $this->authorize('is_admin', $this->user);
         //buscar os dados da página
@@ -288,14 +194,11 @@ class FinanceiroController extends Controller
     /**
      * Metodo para retornar um array para montar o formularo de laçamentos das receitas
      */
-    /**
-     * Metodo para retornar um array para montar o formularo de laçamentos das receitas
-     */
-    public function campos_antigos($id=false){
+    public function campos($id=false){
         $dados = false;
         $conta = request()->get('conta'); //se for null não é fatura principal do contra é uma subfatura
         if($id){
-            $dados = financeiro::Find($id);
+            $dados = DB::table($this->taba)->Find($id);
             if($dados->count()>0){
                 $dados = $dados->toArray();
             }
@@ -413,7 +316,7 @@ class FinanceiroController extends Controller
                 // 'html0'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h6>'.$label0.'</h6><hr class="mt-0 pb-0">'],
                 'categoria'=>[
                     'label'=>'Categoria',
-                    'active'=>true,
+                    'active'=>false,
                     'type'=>'selector',
                     'data_selector'=>[
                         'campos'=>$campos_tipo_cat,
@@ -431,7 +334,7 @@ class FinanceiroController extends Controller
                 ],
                 'conta'=>[
                     'label'=>'Descrição da receita',
-                    'active'=>true,
+                    'active'=>false,
                     'type'=>'selector',
                     'data_selector'=>[
                         'campos'=>$campos_tipo,
@@ -447,25 +350,26 @@ class FinanceiroController extends Controller
                     'tam'=>'12',
                     'class'=>'select2',
                 ],
-                'ano'=>['label'=>'Ano','active'=>true,'placeholder'=>'','type'=>'number','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-                'numero'=>['label'=>'Numero','active'=>true,'placeholder'=>'','type'=>'tel','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
-                'descricao'=>['label'=>'Observação(Opcional)','active'=>true,'type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12','class_div'=>'','class'=>'','placeholder'=>__('Escreva seu conteúdo aqui..')],
-                'valor'=>['label'=>'Valor de previsão*','active'=>false,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos,'validate'=>['required','string']],
+                // 'ano'=>['label'=>'Ano','active'=>true,'placeholder'=>'','type'=>'number','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
+                'vencimento'=>['label'=>'Vencimento','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
+                'data_pagamento'=>['label'=>'Pagamento','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
+                'descricao'=>['label'=>'Observação','active'=>true,'type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12','class_div'=>'','class'=>'','placeholder'=>__('Escreva seu conteúdo aqui..')],
+                'numero'=>['label'=>'Numero','active'=>false,'placeholder'=>'','type'=>'tel','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
+                'valor'=>['label'=>'Valor*','active'=>true,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos,'validate'=>['required','string']],
                 'valor_pago'=>['label'=>'Valor pago','active'=>true,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
             ];
         }
         return $ret;
     }
-    public function movimento_antigo(Request $request){
+    public function index(Request $request){
         $d = $request->all();
         $this->authorize('ler', $this->routa);
         $title = __('Cadastro de contas a ').$this->label;
         $titulo = $title;
-        $queryDefault = $this->queryContas0($d);
+        $queryDefault = $this->queryContas($d);
         $queryDefault['config']['exibe'] = 'html';
         $routa = $this->routa;
         // dump($this->view);
-        // dd($queryDefault);
         $ret = [
             'dados'=>$queryDefault['contas'],
             'title'=>$title,
@@ -479,119 +383,10 @@ class FinanceiroController extends Controller
             'view'=>$this->view,
             'i'=>0,
         ];
+        // dd($this->view);
         return view($this->view.'.index',$ret);
     }
 
-    // public function campos($id=false){
-    //     $dados = false;
-    //     if($id){
-    //         $dados = financeiro::Find($id);
-    //         if($dados->count()>0){
-    //             $dados = $dados->toArray();
-    //         }
-    //     }
-
-    //     $hidden_editor = '';
-    //     if($this->routa=='receitas'){
-    //         $label0 = __('DADOS DO CLIENTE');
-    //         $label1 = __('Cliente');
-    //     }elseif($this->routa=='despesas'){
-    //         $label0 = __('DADOS DO FORNECEDOR');
-    //         $label1 = __('Fornecedor');
-    //     }else{
-    //         $label0 = __('DADOS');
-    //         $label1 = '';
-
-    //     }
-    //     $larg_campos = 6;
-    //     $rf = 'fornecedores';
-    //     $userC = new UserController(['route'=>$rf]);
-    //     $id_permision = $userC->id_permission_fornecedores();
-    //     $arr_opc = Qlib::sql_array("SELECT id,name,email FROM users WHERE ativo='s' AND id_permission='$id_permision'",'name','id');
-    //     $ret = [
-    //         'id'=>['label'=>'Id','active'=>true,'js'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
-    //         // 'post_type'=>['label'=>'tipo de post','active'=>false,'type'=>'hidden','exibe_busca'=>'d-none','event'=>'','tam'=>'2','value'=>$this->post_type],
-    //         'token'=>['label'=>'token','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
-    //         'html0'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h6>'.$label0.'</h6><hr class="mt-0 pb-0">'],
-    //         'id_cliente'=>[
-    //             'label'=>$label1,
-    //             'active'=>true,
-    //             'type'=>'selector',
-    //             'data_selector'=>[
-    //                 'campos'=>$userC->campos(),
-    //                 'route_index'=>route($rf.'.index'),
-    //                 'id_form'=>'frm-'.$rf,
-    //                 'action'=>route($rf.'.store'),
-    //                 'campo_id'=>'id',
-    //                 'campo_bus'=>'name',
-    //                 'label'=>$label1,
-    //             ],'arr_opc'=>$arr_opc,'exibe_busca'=>'d-block',
-    //             'event'=>'required',
-    //             //'event'=>'onchange=carregaMatricula($(this).val())',
-    //             'tam'=>'12',
-    //             'class'=>'select2',
-    //             'value'=>@$_GET['id_cliente'],
-    //         ],
-    //         'tipo'=>['label'=>'tipo','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','value'=>$this->routa,'event'=>'','tam'=>'2'],
-    //         'html1'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h5>Dados da Conta</h5><hr>'],
-    //         'numero'=>['label'=>'Numero','active'=>true,'placeholder'=>'','type'=>'number','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
-    //         'valor'=>['label'=>'Valor*','active'=>true,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos,'validate'=>['required','string']],
-    //         'emissao'=>['label'=>'Data de Emissão*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //         'vencimento'=>['label'=>'Data de vencimento*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //         'descricao'=>['label'=>'Descrição','active'=>true,'placeholder'=>'Uma síntese do um post','type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12'],
-    //         // 'ativo'=>['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'3','arr_opc'=>['s'=>'Sim','n'=>'Não']],
-    //         // 'post_content'=>['label'=>'Conteudo','active'=>false,'type'=>'textarea','exibe_busca'=>'d-block','event'=>$hidden_editor,'tam'=>'12','class_div'=>'','class'=>'summernote','placeholder'=>__('Escreva seu conteúdo aqui..')],
-    //         'pago'=>['label'=>'Pagar','active'=>true,'tab'=>$this->tab ,'campo'=>'pago' ,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'6','arr_opc'=>['s'=>'Pago','n'=>'A pagar'],'tab'=>'financeiro'],
-    //         // 'vencimento'=>['label'=>'Data de vencimento*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //     ];
-    //     if(is_array($dados)){
-    //         $ret['id_cliente']=[
-    //                 'label'=>$label1,
-    //                 'active'=>false,
-    //                 'type'=>'html_vinculo',
-    //                 'exibe_busca'=>'d-none',
-    //                 'event'=>'',
-    //                 'tam'=>'12',
-    //                 'script'=>'',
-    //                 'data_selector'=>[
-    //                     'campos'=>$userC->campos(),
-    //                     'route_index'=>route('fornecedores.index'),
-    //                     'id_form'=>'frm-fornecedores',
-    //                     // 'tipo'=>'array', // int para somente um ou array para vários
-    //                     'tipo'=>'text', // int para somente um ou array para vários
-    //                     'action'=>route('fornecedores.store'),
-    //                     'campo_id'=>'id',
-    //                     'campo_bus'=>'name',
-    //                     'campo'=>'id_cliente',
-    //                     'value'=>[],
-    //                     'label'=>'Informações do lote',
-    //                     'table'=>[
-    //                         //'id'=>['label'=>'Id','type'=>'text'],
-    //                         'name'=>['label'=>'Nome','type'=>'text', //campos que serão motands na tabela
-    //                         'conf_sql'=>[
-    //                             'tab'=>'users',
-    //                             'campo_bus'=>'id',
-    //                             'select'=>'name',
-    //                             'param'=>['name','email'],
-    //                             ]
-    //                         ],
-    //                         'email'=>['label'=>'Email','type'=>'text'], //campos que serão motands na tabela
-    //                     ],
-    //                     'tab' =>'users',
-    //                     'placeholder' =>'Digite somente o nome do '.$label1.'...',
-    //                     'janela'=>[
-    //                         'url'=>route('fornecedores.create').'',
-    //                         // 'param'=>['name','cnpj','email'],
-    //                         'param'=>[],
-    //                         'form-param'=>'',
-    //                     ],
-    //                     'salvar_primeiro' =>false,//exigir cadastro do vinculo antes de cadastrar este
-    //                 ],
-    //                 'script' => false,//'familias.loteamento', //script admicionar
-    //         ];
-    //     }
-    //     return $ret;
-    // }
     public function create()
     {
         $user = $this->user;
