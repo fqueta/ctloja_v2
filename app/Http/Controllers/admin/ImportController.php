@@ -27,8 +27,14 @@ class ImportController extends Controller
         try {
             return back()->with('success', 'Importação concluída!');
         } catch (\Throwable $th) {
+<<<<<<< HEAD
             return back()->with('error', 'Erro ao importar!'.$th->getMessage());
         }
+=======
+            return back()->with('erro', 'Erro ao importar!'.$th->getMessage());
+        }
+        // return back()->with('success', 'Produtos importados com sucesso!');
+>>>>>>> a87a7ce6f2906f994fa9fc31c6e2a856c33f8b38
     }
     public function inport_nubank_entradas_saidas($dados=[],$tabs=[]){
         $ret['exec'] = false;
@@ -36,6 +42,7 @@ class ImportController extends Controller
         $ret['mens'] = 'Erro ao importar';
         $data_geral = [];
         // dd(is_object($dados),$dados);
+<<<<<<< HEAD
         try {
             if(is_object($dados)){
                 $insert = [];
@@ -157,8 +164,129 @@ class ImportController extends Controller
                     }
                     $ret['data'] = $data_geral;
 
+=======
+        if(is_object($dados)){
+            $insert = [];
+            if(is_array($tabs)){
+                foreach ($dados as $row) {
+                        if(isset($row['valor']) && $row['valor'] > 0){
+                            $tab = 'lcf_entradas';
+                            if(in_array($tab,$tabs)){
+                                $id_conta = 2; //banco
+                                $token = @$row['identificador']; //banco
+                                $data = [
+                                    'token' => $token,
+                                    'valor_pago' => @$row['valor'],
+                                    'valor' => @$row['valor'],
+                                    'conta' => $id_conta,
+                                    'descricao' => @$row['descricao'],
+                                    'numero' => '',
+                                    'tag' => 'Banco Nubank',
+                                    'tipo' => 'entrada',
+                                    'data_pagamento' => Qlib::dtBanco(@$row['data']),
+                                    'atualizado' => Qlib::dtBanco(@$row['data']),
+                                    'emissao' => Qlib::dtBanco(@$row['data']),
+                                    'vencimento' => Qlib::dtBanco(@$row['data']),
+                                    'nome' => '',
+                                    'obs' => '',
+                                    'obs_pagamento' => '',
+                                    'historico' => '',
+                                    'historico_estorno' => '',
+                                    'prazo' => 0,
+                                    'periodo_repete' => 0,
+                                    'operador' => 0,
+                                    'id_fatura_fixa' => 0,
+                                    'forma_pagameto' => 0,
+                                    'token_fatura_dividir' => '',
+                                    'registro_geradas_fixa' => '',
+                                    'token_transf' => '',
+                                    'ref_compra' => '',
+                                    'local' => 'import csv',
+                                    'reg_asaas' => '',
+                                    'reg_excluido' => '',
+                                    'reg_deletado' => '',
+                                    'dividir' => '',
+                                    'id_cliente' => 0,
+                                    'id_responsavel' => 0,
+                                    'vezes' => 0,
+                                    'categoria' => 51, //servicos
+                                    'pago' => 's',
+                                    // 'created_at' => now(),
+                                    'autor' => 'sis',
+                                    'data' => now(),
+                                ];
+                                $data_geral[] = $data;
+                                $insert = Qlib::update_tab($tab,$data,"WHERE token='$token'",true);
+                                if($insert['exec']){
+                                    $ret['entradas'] = $insert;
+                                }
+                            }
+                        }
+                        if(isset($row['valor']) && $row['valor'] < 0){
+                            $tab = 'lcf_saidas';
+                            if(in_array($tab,$tabs)){
+                                //converte valor em positivo
+                                $valor = $row['valor'] * (-1);
+                                $id_conta = 2; //banco
+                                $token = @$row['identificador']; //banco
+                                $data = [
+                                    'token' => $token,
+                                    'valor_pago' => $valor,
+                                    'valor' => $valor,
+                                    'conta' => $id_conta,
+                                    'descricao' => @$row['descricao'],
+                                    'numero' => 0,
+                                    'tag' => 'Banco Nubank',
+                                    'tipo' => 'entrada',
+                                    'data_pagamento' => Qlib::dtBanco(@$row['data']),
+                                    'atualizado' => Qlib::dtBanco(@$row['data']),
+                                    'emissao' => Qlib::dtBanco(@$row['data']),
+                                    'vencimento' => Qlib::dtBanco(@$row['data']),
+                                    // 'nome' => '',
+                                    'obs' => '',
+                                    'obs_pagamento' => '',
+                                    'historico' => '',
+                                    'historico_estorno' => '',
+                                    'prazo' => 0,
+                                    'periodo_repete' => 0,
+                                    'operador' => 0,
+                                    'id_fatura_fixa' => 0,
+                                    'forma_pagameto' => 0,
+                                    'token_fatura_dividir' => '',
+                                    'registro_geradas_fixa' => '',
+                                    'token_transf' => '',
+                                    'ref_compra' => '',
+                                    'local' => 'import csv',
+                                    'reg_asaas' => '',
+                                    'reg_excluido' => '',
+                                    'reg_deletado' => '',
+                                    'dividir' => '',
+                                    'id_cliente' => 0,
+                                    'id_responsavel' => 0,
+                                    'vezes' => 0,
+                                    'categoria' => 53, //outros
+                                    'pago' => 's',
+                                    // 'created_at' => now(),
+                                    'autor' => 'sis',
+                                    'data' => now(),
+                                ];
+                                $data_geral[] = $data;
+                                $insert = Qlib::update_tab($tab,$data,"WHERE token='$token'",true,[
+                                    'id_fornecedor'=>0,
+                                    'parcela'=>0,
+                                ]);
+                                // dump($row['valor'],$insert);
+                                if($insert['exec']){
+                                    $ret['saidas'] = $insert;
+                                }
+                            }
+                        }
+>>>>>>> a87a7ce6f2906f994fa9fc31c6e2a856c33f8b38
                 }
+                $ret['data'] = $data_geral;
+
             }
+<<<<<<< HEAD
             if((isset($ret['entradas']['exec']) && ($ret['entradas']['exec'])) || (isset($ret['saidas']['exec']) && $ret['saidas']['exec'])){
                 $ret['exec'] = true;
                 $ret['color'] = 'success';
@@ -173,6 +301,15 @@ class ImportController extends Controller
                 $ret['mens'] = 'Importação não realizada!! '.$th->getMessage();
 
             }
+=======
+        }
+        //Verifica se teve importação de entrada ou de saida para retornar uma reposta de sucesso
+        if((isset($ret['entradas']['exec']) && ($ret['entradas']['exec'])) || (isset($ret['saidas']['exec']) && $ret['saidas']['exec'])){
+            $ret['exec'] = true;
+            $ret['color'] = 'success';
+            $ret['mens'] = 'Importação realizada com sucesso!!';
+
+>>>>>>> a87a7ce6f2906f994fa9fc31c6e2a856c33f8b38
         }
         // dd($ret);
         //Verifica se teve importação de entrada ou de saida para retornar uma reposta de sucesso
