@@ -34,8 +34,8 @@ foreach (config('tenancy.central_domains') as $domain) {
         Route::get('/', function () {
             return 'This is your multi-tenant application. it is the centar route';
         });
-        Route::get('tena-create', [SystemController::class, 'tentantCreate'])->middleware('auth:sanctum');
-        // Route::get('tena-create', [SystemController::class, 'tentantCreate']);
+        // Route::get('tena-create', [SystemController::class, 'tentantCreate'])->middleware('auth:sanctum');
+        Route::get('/tena-create', [SystemController::class, 'tentantCreate']);
     });
 }
 // Route::middleware(['web', TenancyMiddleware::class])->group(function () {

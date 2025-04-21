@@ -45,7 +45,7 @@ class CreateFinanceiroTable extends Migration
             $table->json('config')->nullable();
             $table->integer('id_fatura_fixa')->nullable()->descriptio('identificador para agrupamento e segmetação de resulta');
             $table->string('token_fatura_dividir',50)->nullable();
-            $table->integer('forma_pagameto')->nullable();
+            $table->integer('forma_pagamento')->nullable();
             $table->string('token_transf',50)->nullable();
             $table->string('ref_compra',80)->nullable();
             $table->string('local',5)->nullable();

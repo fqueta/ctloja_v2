@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\UserController;
 use stdClass;
 
-class FinanceiroControllerAntigo extends Controller
+class FinanceiroController_bkp2 extends Controller
 {
     public $user;
     public $sec;

@@ -37,7 +37,7 @@
         padding: 0%;
     }
 </style>
-<table class="table table-hover table-striped dataTable {{$routa}}" style="{{@$style}}">
+<table id="lista-tabela" class="table table-hover table-striped dataTable {{$routa}}" style="{{@$style}}">
     <thead>
         <tr>
             <th class="text-center d-print-none" style="width: 3%"><input onclick="gerSelect($(this));" type="checkbox" name="todos" id=""></th>
@@ -57,7 +57,7 @@
         </tr>
     </thead>
     <tbody>
-        @if(isset($dados))
+        @if(isset($dados) && $routa!='receitas')
             @foreach($dados as $key => $val)
             @php
                 if(isset($val->ID)){

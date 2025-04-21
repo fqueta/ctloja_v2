@@ -63,7 +63,7 @@ class PostsController extends Controller
             $this->view = 'admin.padrao';
         }
         $this->tab = 'posts';
-        $this->i_wp = Qlib::qoption('i_wp');//indegração com Wp s para sim
+        // $this->i_wp = Qlib::qoption('i_wp');//indegração com Wp s para sim
         // $this->wp_api = new ApiWpController();
         // $this->d_pagina = $d_pagina;
 
@@ -88,7 +88,7 @@ class PostsController extends Controller
         //$post =  DB::table('posts')->where('excluido','=','n')->where('deletado','=','n')->orderBy('id',$config['order']);
 
         $post_totais = new stdClass;
-        $campos = isset($_SESSION['campos_posts_exibe']) ? $_SESSION['campos_posts_exibe'] : $this->campos();
+        $campos = $this->campos();
         $tituloTabela = 'Lista de todos cadastros';
         $arr_titulo = false;
         if(isset($get['filter'])){
@@ -148,12 +148,13 @@ class PostsController extends Controller
         ];
         return $ret;
     }
-    public function campos($id=false){
+    public function campos($id=false,$type=false){
         $sec = $this->sec;
+        $this->post_type = $type ? $type : $this->post_type;
         $hidden_editor = '';
-        if(Qlib::qoption('editor_padrao')=='laraberg'){
-            $hidden_editor = 'hidden';
-        }
+        // if(Qlib::qoption('editor_padrao')=='laraberg'){
+        //     $hidden_editor = 'hidden';
+        // }
         $d = [];
         if($id){
             $d = Post::find($id);
@@ -193,6 +194,10 @@ class PostsController extends Controller
             }elseif($this->post_type =='tipo_receitas' || $this->post_type =='tipo_despesas'){
                 $ret['guid']['arr_opc'] = Qlib::sql_array("SELECT ID,post_title FROM posts WHERE post_status='publish' AND post_type='".$this->post_type."'",'post_title','ID');
             }
+        }elseif($this->post_type=='cat_receitas' || $this->post_type=='cat_despesas'){
+            $ret = $this->campos_categoria($d);
+        }elseif($this->post_type=='contas' || $this->post_type=='formas_pagamento'){
+            $ret = $this->campos_contas($d);
         }else{
             $ret = [
                 'ID'=>['label'=>'Id','active'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
@@ -216,6 +221,90 @@ class PostsController extends Controller
             }
         }
         // dump($ret);
+        return $ret;
+    }
+    public function campos_contas($d=[]){
+        $placeholder = 'Caixa1';
+        $ret = [
+            'ID'=>['label'=>'Id','active'=>true,'type'=>'hidden','js'=>true,'exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            'post_type'=>['label'=>'tipo de post','active'=>false,'js'=>true,'type'=>'hidden','exibe_busca'=>'d-none','event'=>'','tam'=>'2','value'=>$this->post_type],
+            'token'=>['label'=>'token','active'=>false,'js'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            'html1'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>''],
+            'post_title'=>['label'=>'Nome','active'=>true,'js'=>true,'placeholder'=>'Ex.: '.$placeholder.'','type'=>'text','exibe_busca'=>'d-block','event'=>'onkeyup=lib_typeSlug(this) required','tam'=>'12'],
+            // 'post_name'=>['label'=>'Slug','active'=>false,'placeholder'=>'','type'=>'hidden','exibe_busca'=>'d-block','event'=>'type_slug=true','tam'=>'12'],
+            // 'post_excerpt'=>['label'=>'Resumo (Opcional)','active'=>true,'placeholder'=>'Uma síntese do um post','type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12'],
+            // 'ativo'=>['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'3','arr_opc'=>['s'=>'Sim','n'=>'Não']],
+
+        ];
+        if($this->post_type=='formas_pagamento'){
+            $ret['config[taxa]'] = ['label'=>'Taxa (%) ','active'=>true,'placeholder'=>'','type'=>'porcentagem','exibe_busca'=>'d-block','event'=>'','tam'=>'12','cp_busca'=>'config][taxa'];
+            // $ret['guid'] = [
+            //         'label'=>'Grupo',
+            //         'active'=>true,
+            //         'id'=>'categorizar',
+            //         'type'=>'select',
+            //         'arr_opc'=>['compras'=>'Compras','despesas'=>'Despesas'],
+            //         'exibe_busca'=>'d-block',
+            //         'event'=>'required',
+            //         'tam'=>'12',
+            //         'class'=>'',
+            //         'title'=>'',
+            //         'exibe_busca'=>true,
+            //         'option_select'=>true,
+            // ];
+        }
+        $ret['post_status'] = ['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'publish','valor_padrao'=>'publish','exibe_busca'=>'d-block','event'=>'','tam'=>'6','arr_opc'=>['publish'=>'Publicado','pending'=>'Pendente'],'tab'=>'posts'];
+
+        return $ret;
+    }
+    public function campos_categoria($d=[]){
+        $placeholder = 'Serviços';
+        if($this->post_type=='cat_despesas'){
+            $placeholder = 'Impostos';
+        }
+        $ret = [
+            'ID'=>['label'=>'Id','active'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            'post_type'=>['label'=>'tipo de post','active'=>false,'type'=>'hidden','exibe_busca'=>'d-none','event'=>'','tam'=>'2','value'=>$this->post_type],
+            'token'=>['label'=>'token','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            'html1'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>''],
+            'post_title'=>['label'=>'Nome','active'=>true,'placeholder'=>'Ex.: '.$placeholder.'','type'=>'text','exibe_busca'=>'d-block','event'=>'onkeyup=lib_typeSlug(this) required','tam'=>'12'],
+            'post_name'=>['label'=>'Slug','active'=>false,'placeholder'=>'','type'=>'hidden','exibe_busca'=>'d-block','event'=>'type_slug=true','tam'=>'12'],
+            // 'post_excerpt'=>['label'=>'Resumo (Opcional)','active'=>true,'placeholder'=>'Uma síntese do um post','type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12'],
+            // 'ativo'=>['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'3','arr_opc'=>['s'=>'Sim','n'=>'Não']],
+        ];
+        if($this->post_type=='cat_despesas'){
+            $ret['config[previsao]'] = ['label'=>'Previsão (%)','active'=>false,'placeholder'=>'','type'=>'porcentagem','exibe_busca'=>'d-block','event'=>'','tam'=>'12','cp_busca'=>'config][previsao'];
+            $ret['guid'] = [
+                    'label'=>'Grupo',
+                    'active'=>true,
+                    'id'=>'categorizar',
+                    'type'=>'select',
+                    'arr_opc'=>['compras'=>'Compras','despesas'=>'Despesas'],
+                    'exibe_busca'=>'d-block',
+                    'event'=>'required',
+                    'tam'=>'12',
+                    'class'=>'',
+                    'title'=>'',
+                    'exibe_busca'=>true,
+                    'option_select'=>true,
+            ];
+        }
+        $ret['post_parent'] = [
+                'label'=>'Categoria principal',
+                'active'=>true,
+                'id'=>'categorizar',
+                'type'=>'select',
+                'arr_opc'=>Qlib::sql_array("SELECT ID,post_title FROM posts WHERE post_status='publish' AND post_parent IS NULL AND post_type='".$this->post_type."'",'post_title','ID','','',''),
+                'exibe_busca'=>'d-block',
+                'event'=>'',
+                'tam'=>'12',
+                'class'=>'',
+                'title'=>'Use esta opção caso esta categoria faça parte de uma ja existente',
+                'exibe_busca'=>true,
+                'option_select'=>true,
+        ];
+        $ret['post_content'] = ['label'=>'Descrição (opcional)','active'=>false,'type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12','class_div'=>'','class'=>'summernote','placeholder'=>__('Escreva seu conteúdo aqui..')];
+        $ret['post_status'] = ['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'publish','valor_padrao'=>'publish','exibe_busca'=>'d-block','event'=>'','tam'=>'6','arr_opc'=>['publish'=>'Publicado','pending'=>'Pendente'],'tab'=>'posts'];
         return $ret;
     }
     /**
@@ -250,13 +339,16 @@ class PostsController extends Controller
         //buscar os dados da página
         $d_pagina = $this->pagina();
         if(!$d_pagina){
-            if($this->sec=='posts'){
-                $title = 'Cadastro de '.$this->label;
-            }elseif($this->sec=='pages'){
-                $title = 'Cadastro de paginas';
-            }else{
-                $title = 'Cadastro';
-            }
+            // if($this->sec=='posts'){
+            //     $title = 'Cadastro de '.$this->label;
+            // }elseif($this->sec=='pages'){
+            //     $title = 'Cadastro de paginas';
+            // }else{
+            //     $title = 'Cadastro';
+            // }
+            $selTypes = $this->selectType($this->sec);
+            $title = $selTypes['title'];
+
         }else{
             $title = 'Cadastro de '.$d_pagina['nome'];
         }
@@ -464,32 +556,20 @@ class PostsController extends Controller
         $ret['title']=false;
         $title = false;
         if($sec){
-            $name = request()->route()->getName();
-            // if($sec=='posts'){
-            //     $title = __('Cadastro de postagens');
-            // }elseif($sec=='produtos'){
-            //     $title = __('Cadastro de contratos');
-            //     if($name=='produtos.edit'){
-            //         $title = __('Editar Cadastro de contratos');
-            //     }
-            // }elseif($sec=='leiloes_adm'){
-            //     $title = __('Cadastro de leilao');
-            //     if($name=='leilao.edit'){
-            //         $title = __('Editar Cadastro de leilao');
-            //     }
-            // }elseif($sec=='paginas'){
-            //     $title = __('Cadastro de paginas');
-            // }elseif($sec=='menus'){
-            //     $title = __('Cadastro de menus');
-            // }elseif($sec=='pacotes_lances'){
-            //     $title = __('Cadastro de pacotes');
-            // }else{
-            //     $title = __('Sem titulo');
-            // }
+            // $name = request()->route()->getName();
+
             $d_pagina = $this->pagina();
             if(!$d_pagina){
                 if($this->sec=='posts' || $this->sec=='pages'){
                     $title = 'Cadastro de '.$this->label;
+                }elseif($this->sec=='cat_receitas'){
+                    $title = 'Cadastro de categorias de receitas';
+                }elseif($this->sec=='cat_despesas'){
+                    $title = 'Cadastro de categorias de despesas';
+                }elseif($this->sec=='contas'){
+                    $title = 'Cadastro de contas';
+                }elseif($this->sec=='formas_pagamento'){
+                    $title = 'Cadastro de formas de pagamentos';
                 }else{
                     $title = __('Sem titulo');
                 }

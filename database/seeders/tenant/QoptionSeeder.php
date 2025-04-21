@@ -18,10 +18,10 @@ class QoptionSeeder extends Seeder
         Qoption::truncate();
         Qoption::insert([
             [
-                'nome'=>'Integração com o wordpress',
-                'url'=>'i_wp',
-                'valor'=>'n',
-                'obs'=>'',
+                'nome'=>'Tipo de sistema financeiro',
+                'url'=>'tipo_financeiro',
+                'valor'=>'1',
+                'obs'=>'O tipo de sistema financeiro 1 atente as padarias e tipo de sistema financeiro 2 vai atender outros negocios de forma geral',
             ],
             [
                 'nome'=>'Permissão padrão clientes',

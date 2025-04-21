@@ -55,7 +55,7 @@ class MenuSeeder extends Seeder
             ],
             [
                 'categoria'=>'FINANCEIRO',
-                'description'=>'Financeiro antigo',
+                'description'=>'Financeiro',
                 'icon'=>'fas fa-wallet',
                 'actived'=>true,
                 'url'=>'ger-financeiro',
@@ -78,6 +78,24 @@ class MenuSeeder extends Seeder
                 'actived'=>true,
                 'url'=>'pagar',
                 'route'=>'pagar.index',
+                'pai'=>'ger-financeiro'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Receitas',
+                'icon'=>'fas fa-list',
+                'actived'=>true,
+                'url'=>'receitas',
+                'route'=>'receitas.index',
+                'pai'=>'ger-financeiro'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Despesas',
+                'icon'=>'fas fa-list',
+                'actived'=>true,
+                'url'=>'despesas',
+                'route'=>'despesas.index',
                 'pai'=>'ger-financeiro'
             ],
             [
@@ -177,6 +195,42 @@ class MenuSeeder extends Seeder
                 'actived'=>true,
                 'url'=>'tags',
                 'route'=>'tags.index',
+                'pai'=>'config'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Categorias de Receitas',
+                'icon'=>'fas fa-wallet',
+                'actived'=>true,
+                'url'=>'cat_receitas',
+                'route'=>'cat_receitas.index',
+                'pai'=>'config'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Categorias de Despesas',
+                'icon'=>'fas fa-wallet',
+                'actived'=>true,
+                'url'=>'cat_despesas',
+                'route'=>'cat_despesas.index',
+                'pai'=>'config'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Contas financeiras',
+                'icon'=>'fas fa-wallet',
+                'actived'=>true,
+                'url'=>'contas',
+                'route'=>'contas.index',
+                'pai'=>'config'
+            ],
+            [
+                'categoria'=>'',
+                'description'=>'Formas de pagamento',
+                'icon'=>'fas fa-wallet',
+                'actived'=>true,
+                'url'=>'formas_pagamento',
+                'route'=>'formas_pagamento.index',
                 'pai'=>'config'
             ],
             [

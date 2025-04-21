@@ -12,6 +12,7 @@ class SystemController extends Controller
     //     $this->middleware('auth');
     // }
     public function tentantCreate(Request $request){
+        // dd($request->all());
         $id = $request->get('id');
         $domain = $request->get('domain');
         $tenant1 = Tenant::create(['id' => $id]);

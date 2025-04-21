@@ -311,12 +311,40 @@
                 $class = 'moeda '.$config['class'];
                 // dd($config);
                 if(!empty($config['value'])){
-                    $sigla   = 'R$';
+                    $sigla  = 'R$';
                     $value = $config['value'];
                     $pos = strpos( $value, $sigla );
                     if ($pos === false) {
                         $config['value'] = App\Qlib\Qlib::precoBanco($config['value']);
                         $value = 'R$'.number_format($config['value'],2,',','.');
+                    }
+                }
+                $title = false;
+                if(isset($config['title']) && !empty($config['title'])){
+                    $title = 'data-toggle="tooltip" data-placement="top" title="'.__($config['title']).'"';
+                }
+            @endphp
+
+            <input type="tel" {!!$title!!} class="form-control @error($config['campo']) is-invalid @enderror {{$class}}" id="inp-{{$config['campo']}}" name="{{$config['campo']}}" aria-describedby="{{$config['campo']}}" placeholder="{{$config['placeholder']}}" value="@if(isset($value)){{$value}}@elseif($config['ac']=='cad'){{old($config['campo'])}}@endif" {{$config['event']}} />
+            @error($config['campo'])
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+        </div>
+    @elseif($config['type']=='porcentagem')
+        <div class="form-group col-{{$config['col']}}-{{$config['tam']}} {{$config['class_div']}}" div-id="{{$config['campo']}}" >
+            @if ($config['label'])
+                <label for="{{$config['campo']}}">{{$config['label']}}</label>
+            @endif
+            @php
+                $class = $config['type'].' '.$config['class'];
+                // dd($config);
+                if(!empty($config['value'])){
+                    $sigla  = '%';
+                    $value = $config['value'];
+                    $pos = strpos( $value, $sigla );
+                    if ($pos === false) {
+                        $config['value'] = App\Qlib\Qlib::precoBanco($config['value']);
+                        $value = number_format($config['value'],2,',','.').'%';
                     }
                 }
                 $title = false;

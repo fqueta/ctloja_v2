@@ -44,12 +44,13 @@ class financeiro extends Model
         'config',
         'id_fatura_fixa',
         'token_fatura_dividir',
-        'forma_pagameto',
+        'forma_pagamento',
         'token_transf',
         'ref_compra',
         'local',
         'reg_asaas',
         'data_recorrencia',
         'cobrar',
+        'token',
     ];
 }

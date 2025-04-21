@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
 
-class FinanceiroController extends Controller
+class FinanceiroController_bk extends Controller
 {
     public $user;
     public $sec;

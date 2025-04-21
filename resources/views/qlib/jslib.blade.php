@@ -20,15 +20,9 @@
 <script src=" {{url('/js/lib.js')}}?ver={{config('app.version')}}"></script>
 <script>
     $(function(){
-        $('.dataTable').DataTable({
-                "paging":   false,
-                stateSave: true,
-                language: {
-                    url: '/DataTables/datatable-pt-br.json'
-                },
-                order:[]
-        });
+
         carregaMascaraMoeda(".moeda");
+        carregaMascaraMoeda(".porcentagem");
         $('[selector-event]').on('change',function(){
             initSelector($(this));
         });

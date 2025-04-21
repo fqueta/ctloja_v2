@@ -1318,8 +1318,13 @@ function janelaEtapaMass(selecionandos){
     }
 }
 function carregaMascaraMoeda(s){
+    if(s=='.porcentagem'){
+        var prefix = '';
+    }else{
+        var prefix = 'R$ ';
+    }
     $(s).maskMoney({
-        prefix: 'R$ ',
+        prefix: prefix,
         allowNegative: true,
         thousands: '.',
         decimal: ','
@@ -1918,142 +1923,7 @@ function lib_abrirListaOcupantes(){
         abrirjanelaPadraoConsulta(url,'lista-ocupantes');
     }
 }
-function zoom(c) {
-    var s = new Number(50);
-    let a = 0;
-    let box = document.querySelector('#svg-img');
-    let width = box.style.width;
-    let top = box.style.top;
-    let left = box.style.left;
-    let height = box.offsetHeight;
-    var w = width.replace('%','');
-    var l = left.replace('%','');
-    var t = top.replace('%','');
-    w = new Number(w);
-    if(w==0){
-        w=100;
-    }
-    if(c=='p'){
-        a=w+s;
-        to=t-s;
-        le=l-s;
-        box.style.width = (a)+'%';
-        box.style.top = (to)+'%';
-        box.style.left = (le)+'%';
-    }
-    if(c=='r'){
-        //retorna ao inicio
-        box.style.width = '100%';
-        box.style.left = '0%';
-        box.style.top = '0%';
-    }
-    if(c=='m'){
-        a=w-s;
-        to=new Number(t)+new Number(s);
-        le=new Number(l)+new Number(s);
 
-        box.style.width = (a)+'%';
-        box.style.top = (to)+'%';
-        box.style.left = (le)+'%';
-    }
-}
-function lib_conteudoMapa(id,tipo,local){
-    if(typeof tipo=='undefined'){
-        tipo = 'lotes';
-    }
-    if(typeof local=='undefined'){
-        local = 'quadras';
-    }
-    if(id &&tipo=='lotes' && local=='quadras'){
-        let arr_id = id.split('-');
-        getAjax({
-            url:'/'+tipo+'?ajax=s',
-            data:{
-                bairro:arr_id[0],
-                quadra:arr_id[1],
-                term:new Number(arr_id[2]),
-                familias:'s',
-            }
-        },function(res){
-            $('#preload').fadeOut("fast");
-            lib_infoMaps({
-                res:res,
-                bairro:arr_id[0],
-                quadra:arr_id[1],
-                lote:arr_id[2],
-                local:local,
-                tipo:tipo,
-            });
-        });
-    }
-}
-function lib_infoMaps(config){
-    if(typeof config.res=='undefined' || typeof config.local=='undefined' || typeof config.tipo=='undefined'){
-        return;
-    }
-    if(typeof config.lote=='undefined'){
-        config.lote = 0;
-    }
-    if(typeof config.quadra=='undefined'){
-        config.quadra = 0;
-    }
-    try {
-        let mensPainel = '';
-        let tm1 = '<div class="card card-secondary shadow card-outline"><div class="card-header"><h3 class="card-title">{title}</h3>{btn_fechar}</div><div class="card-body {px}"><div class="list-group">{cont}</div></div>';
-        let tm2 = '<a class="list-group-item  list-group-item-action py-1 px-2" href="{href}">{label} <i class="fa fa-link ml-3"></i></a>';
-        let btn_fechar = '<div class="card-tools"><button onclick="lib_fechaCardOc();" type="button" class="btn btn-tool" data-card-widget="close" title="Collapse"><i class="fas fa-times"></i></button></div>';
-        let redirect = '?redirect=/mapas/'+config.local+'/'+config.quadra;
-        let redirect2 = '&redirect=/mapas/'+config.local+'/'+config.quadra;
-        if(dl=config.res[0].dados){
-            let link_lote = '/lotes/'+dl.id+'/edit'+redirect;
-            if(fam=dl.familias){
-                let cont = '';
-                if(fam[0]){
-
-                    for (let i = 0; i < fam.length; i++) {
-                        const el = fam[i];
-                        let href='/familias/'+el.id+'/show'+redirect;
-                        cont += tm2.replace('{href}',href);
-                        cont = cont.replace('{label}',el.nome);
-                    }
-                    if(fam.length>1){
-                        var title = 'Ocupantes';
-                    }else{
-                        var title = 'Ocupante';
-                    }
-                    mensPainel = tm1.replace('{cont}',cont);
-                    mensPainel = mensPainel.replace('{px}','p-0');
-                    mensPainel = mensPainel.replace('{title}',title+' <a href="'+link_lote+redirect+'" style="text-decoration:underline">lote '+dl.nome+'</a>');
-                }else{
-                    cont = 'Ocupante não cadastrado';
-                    cont += '<a href="/lotes/create?bairro='+config.bairro+'&quadra='+config.quadra+'&nome='+config.lote+redirect2+'" class="btn btn-primary btn-block mt-3">Cadastrar</a>';
-
-                    mensPainel = tm1.replace('{cont}',cont);
-                    mensPainel = mensPainel.replace('{title}','Aviso <a href="'+link_lote+redirect+'">lote '+dl.nome+'</a>');
-                }
-            }else{
-                cont = 'Família não localizada';
-                mensPainel = tm1.replace('{cont}',cont);
-                mensPainel = mensPainel.replace('{title}','Aviso <a href="'+link_lote+redirect+'">lote '+dl.nome+'</a>');
-            }
-        }else{
-            cont = config.res[0].value;
-            let btnCadA = '<a href="/familias/create?bairro='+config.bairro+'&quadra='+config.quadra+'&loteamento='+config.lote+redirect2+'" class="btn btn-primary btn-block mt-3">Cadastrar</a>';
-            mensPainel = tm1.replace('{cont}',cont);
-            mensPainel = mensPainel.replace('Cadastrar agora?',btnCadA);
-            mensPainel = mensPainel.replace('Lote','Cadastro do lote '+config.lote);
-            mensPainel = mensPainel.replace('{title}','Atenção');
-        }
-        if(mensPainel){
-            mensPainel = mensPainel.replace('{btn_fechar}',btn_fechar);
-            $('.mini-card').addClass('active').html(mensPainel);
-        }else{
-            $('.mini-card').removeClass('active').html('');
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
 function lib_fechaCardOc(){
     $('.mini-card').removeClass('active').html('');
 }
@@ -2144,22 +2014,7 @@ function update_status_post(obj){
         console.log(err);
     });
 }
-function resend_email_sic() {
-    getAjax({
-        url:'/internautas/send-verific-user',
-        type: 'GET',
-        dataType: 'json',
-        csrf: true
-    },function(res){
-        $('#preload').fadeOut("fast");
 
-        lib_formatMensagem('.mens',res.mens,res.color,9000);
-
-    },function(err){
-        $('#preload').fadeOut("fast");
-        console.log(err);
-    });
-}
 function exibeTpc(val){
     if(val=='p'){
         $('.tpc-p').show();
@@ -2168,73 +2023,6 @@ function exibeTpc(val){
     if(val=='a'){
         $('.tpc-p').hide();
         $('.tpc-a').show();
-    }
-}
-function cancelarSulamerica(token,id,obj){
-    var no = obj.getAttribute('data-operacao');
-    // var token_contrato = obj.getAttribute('data-token_contrato');
-    if(!window.confirm('DESEJA PROSSEGUIR COM O CANCELAMENTO?')){
-        return;
-    }
-    try {
-        getAjax({
-            url:'/api/v1/cancelar',
-            type: 'POST',
-            dataType: 'json',
-            csrf: true,
-            data:{
-                id: id,
-                numeroOperacao: no,
-                token_contrato: token
-            }
-        },function(res){
-            $('#preload').fadeOut("fast");
-            lib_formatMensagem('.mens',res.mens,res.color);
-            dps_cancela(res);
-        },function(err){
-            $('#preload').fadeOut("fast");
-            console.log(err);
-        });
-    } catch (error) {
-        console.log(error);
-    }
-
-}
-//executado depos do cancelamento
-function dps_cancela(res){
-    if(res.exec){
-        document.querySelector('[btn-volter="true"]').click();
-        $('[btn="permanecer"]').hide();
-        $('[btn="sair"]').hide();
-    }
-}
-function reativar_cadastro(token,link_a){
-    if (typeof link_a=='undefined') {
-        alert('Id não informado')
-        return
-    }
-    if(!window.confirm('DESEJA INICIAR O PRECESSO DE REATIVAÇÃO?')){
-        return;
-    }
-    try {
-        getAjax({
-            url:'/admin/ajax/cliente/reativar/'+token,
-            type: 'POST',
-            dataType: 'json',
-            csrf: true,
-            data:{
-                token: token
-            }
-        },function(res){
-            $('#preload').fadeOut("fast");
-            lib_formatMensagem('.mens',res.mens,res.color);
-            dps_reativa(res,link_a);
-        },function(err){
-            $('#preload').fadeOut("fast");
-            console.log(err);
-        });
-    } catch (error) {
-        console.log(error);
     }
 }
 function dps_reativa(res,link){
@@ -2279,4 +2067,55 @@ function excluir_cliente(id,link_r){
     } catch (error) {
         console.log(error);
     }
+}
+// Função para salvar os dados atuais da tabela
+function salvarTabelaNoSession(tabela) {
+    const dados = tabela.rows().data().toArray(); // pega todas as linhas
+    sessionStorage.setItem('dadosTabela', JSON.stringify(dados));
+    console.log(dados);
+}
+function restaurarTabelaDoSession() {
+    const dadosSalvos = sessionStorage.getItem('dadosTabela');
+    if (dadosSalvos) {
+        const dados = JSON.parse(dadosSalvos);
+        tabela.clear();
+        dados.forEach(function (linha) {
+            tabela.row.add(linha);
+        });
+        tabela.draw();
+    }
+}
+function recuperaTabelaDoSession() {
+    const dadosSalvos = sessionStorage.getItem('dadosTabela');
+    if (dadosSalvos) {
+        const dados = JSON.parse(dadosSalvos);
+        return dados;
+        // tabela.clear();
+        // dados.forEach(function (linha) {
+        //     tabela.row.add(linha);
+        // });
+        // tabela.draw();
+    }else{
+        return '';
+    }
+}
+function editar_linha_tabela(jobj){
+    // salvarTabelaNoSession();
+    const tabela = recuperaTabelaDoSession();
+    console.log(tabela);
+
+}
+function limparCamposObrigatorios(sel_form) {
+    // Seleciona todos os campos obrigatórios, incluindo inputs e selects
+    const camposObrigatorios = document.querySelectorAll(sel_form+' [required]');
+
+    camposObrigatorios.forEach(campo => {
+        if (campo.tagName === 'SELECT') {
+            // Define a seleção para o valor padrão (geralmente a primeira opção)
+            campo.selectedIndex = 0;
+        } else {
+            // Limpa os campos de texto e outros tipos de input
+            campo.value = '';
+        }
+    });
 }

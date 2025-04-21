@@ -26,6 +26,7 @@ class estadocivilSeeder extends Seeder
             'União Estável com registro',
             'Outro',
         ];
+        Estadocivil::truncate();
         foreach ($arr as $key => $value) {
             Estadocivil::create([
                 'nome'=>$value,

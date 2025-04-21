@@ -15,6 +15,7 @@ use App\Http\Controllers\EtapaController;
 use App\Http\Controllers\portal\sicController;
 use App\Http\Controllers\portalController;
 use App\Http\Controllers\preview\PreviewController;
+use App\Http\Controllers\SystemController;
 use App\Http\Controllers\TesteController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
@@ -54,6 +55,8 @@ Route::middleware([
     $prefixo_admin = config('app.prefixo_admin');
     $prefixo_site = config('app.prefixo_site');
     Route::get('/', [App\Http\Controllers\site\SiteController::class, 'home'])->name('home');
+    //Criar um novo tenant
+    Route::get('/system/tena-create', [SystemController::class, 'tentantCreate'])->middleware('auth')->name('tenant.create');
     Route::get('/test', [App\Http\Controllers\site\SiteController::class, 'test_portal'])->name('teste.site');
     Route::prefix($prefixo_site.'internautas')->group(function(){
         Route::get('/',[App\Http\Controllers\portalController::class, 'index'])->name('internautas.index');
@@ -88,6 +91,9 @@ Route::middleware([
         });
         Route::resource('fornecedores','\App\Http\Controllers\UserController',['parameters' => [
             'fornecedores' => 'id'
+        ]]);
+        Route::resource('formas_pagamento','\App\Http\Controllers\admin\PostsController',['parameters' => [
+            'formas_pagamento' => 'id'
         ]]);
         Route::resource('posts','\App\Http\Controllers\admin\PostsController',['parameters' => [
             'posts' => 'id'
@@ -130,12 +136,6 @@ Route::middleware([
         ]]);
         Route::get('sics/relatorios', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('financeiro.receber');
         Route::get('sics/relatorios-', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('financeiro.pagar');
-        //inicio Rotas módulo Sic
-        // Route::resource('sic','\App\Http\Controllers\admin\sicController',['as'=>'admin','parameters' => ['sic' => 'id']]);
-        // Route::get('sics/relatorios', ['\App\Http\Controllers\admin\sicController', 'relatorios'])->name('admin.sic.relatorios');
-        // Route::get('sics/config', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config');
-        // Route::get('sics/config/{url}', ['\App\Http\Controllers\admin\sicController', 'config'])->name('admin.sic.config.edit');
-        //Fim Rotas módulo Sic
         Route::prefix('uploads')->group(function(){
             Route::get('/',[uploadController::class,'index'])->name('uploads.index');
             Route::get('/create',[UploadController::class,'create'])->name('uploads.create');
@@ -174,10 +174,10 @@ Route::middleware([
             Route::resource('despesas', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
                 'despesas' => 'id'
             ]]);
-            Route::resource('receber', '\App\Http\Controllers\admin\FinanceiroControllerAntigo', ['parameters'=>[
+            Route::resource('receber', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
                 'receber' => 'id'
             ]]);
-            Route::resource('pagar', '\App\Http\Controllers\admin\FinanceiroControllerAntigo', ['parameters'=>[
+            Route::resource('pagar', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
                 'pagar' => 'id'
             ]]);
             Route::resource('extrato', '\App\Http\Controllers\admin\FinanceiroController', ['parameters'=>[
@@ -205,15 +205,6 @@ Route::middleware([
         Route::resource('/categorias', '\App\Http\Controllers\admin\PostsController',['parameters' => [
             'categorias' => 'id'
         ]]);
-        // Route::resource('/portarias', '\App\Http\Controllers\admin\PostsController',['parameters' => [
-        //     'portarias' => 'id'
-        // ]]);
-        // Route::resource('/secretarias', '\App\Http\Controllers\admin\PostsController',['parameters' => [
-        //     'secretarias' => 'id'
-        // ]]);
-        // Route::resource('/servidores', '\App\Http\Controllers\UserController',['parameters' => [
-        //     'servidores' => 'id'
-        // ]]);
         Route::resource('/convenios', '\App\Http\Controllers\admin\PostsController',['parameters' => [
             'convenios' => 'id'
         ]]);
@@ -249,13 +240,7 @@ Route::middleware([
         Route::get('/pefil',[UserController::class,'perfilShow'])->name('sistema.perfil');
         Route::get('/perfil/edit',[UserController::class,'perfilEdit'])->name('sistema.perfil.edit');
         Route::post('/perfil/store',[UserController::class,'perfilStore'])->name('sistema.perfil.store');
-        // Route::get('/config',[EtapaController::class,'config'])->name('sistema.config');
-        // Route::post('/{id}',[EtapaController::class,'update'])->where('id', '[0-9]+')->name('sistema.update-ajax');
     });
-    // Route::prefix('preview')->group(function(){
-    //     Route::get('/posts/{id}',[PreviewController::class,'posts'])->name('preview.posts');
-    //     Route::get('/noticias',[PreviewController::class,'noticias'])->name('preview.noticias');
-    // });
     Route::prefix('cobranca')->group(function(){
         Route::get('/fechar',[UserController::class,'pararAlertaFaturaVencida'])->name('alerta.cobranca.fechar');
     });
@@ -290,8 +275,26 @@ Route::name('api.')->prefix('api/v1')->middleware([
     });
     Route::post('/contratar',[ SulAmericaController::class,'contratar'])->name('contratar');
     Route::post('/cancelar',[ SulAmericaController::class,'cancelar'])->name('cancelar');
-    // Route::resource('/contratacao', '\App\Http\Controllers\api\SulAmericaController', ['only' => ['index']]);
-    // Route::get('/contratacao',[SulAmericaController::class,'contratacao'])->name('contataocao.sulamerica');
-    // Route::resource('/documents', '\App\Http\Controllers\api\PostController', ['only' => ['index','show']]);
+    Route::prefix('/financeiro')->group(function(){
+        Route::resource('receitas', '\App\Http\Controllers\api\FinanceiroController', ['parameters'=>[
+            'receitas' => 'id'
+        ]]);
+        Route::resource('despesas', '\App\Http\Controllers\api\FinanceiroController', ['parameters'=>[
+            'despesas' => 'id'
+        ]]);
+        Route::resource('receber', '\App\Http\Controllers\api\FinanceiroController', ['parameters'=>[
+            'receber' => 'id'
+        ]]);
+        Route::resource('pagar', '\App\Http\Controllers\api\FinanceiroController', ['parameters'=>[
+            'pagar' => 'id'
+        ]]);
+        Route::resource('extrato', '\App\Http\Controllers\api\FinanceiroController', ['parameters'=>[
+            'extrato' => 'id'
+        ]]);
+        // Route::get('receitas', [FinanceiroController::class,'receitas'])->name('financeiro.receitas');
+        Route::get('despesas', [FinanceiroController::class,'despesas'])->name('financeiro.despesas');
+        // Route::get('receber', [FinanceiroController::class,'movimento_antigo'])->name('financeiro.receber');
+        // Route::get('pagar', [FinanceiroController::class,'movimento_antigo'])->name('financeiro.pagar');
+    });
 
 });

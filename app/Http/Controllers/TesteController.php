@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\admin\AttachmentsController;
 use App\Http\Controllers\admin\ContratoController;
+use App\Http\Controllers\admin\FinanceiroController;
 use App\Http\Controllers\admin\PostsController;
 use App\Http\Controllers\admin\UserPermissions;
 use App\Http\Controllers\api\SulAmericaController;
@@ -28,23 +29,23 @@ class TesteController extends Controller
     public function index(Request $request)
     {
 
-        $type = $request->get('type');
-        $ret = false;
-        if($type=='contratacao'){
-            $numero = $request->get('numero') ? $request->get('numero') : 6;
-            $config = [
-                'plano'=>1,
-                'operacaoParceiro'=>Qlib::zerofill($numero,5),
-                'nomeSegurado'=>'Programdor teste',
-                'dataNascimento'=>'1989-06-05',
-                'sexo'=>'F',
-                'uf'=>'MG',
-                'documento'=>'12345678909',
-                'inicioVigencia'=>'2025-03-25',
-                'fimVigencia'=>'2026-03-25',
-            ];
-            $ret = (new SulAmericaController)->contratacao($config);
-        }
+        // $type = $request->get('type');
+        // $ret = false;
+        // if($type=='contratacao'){
+        //     $numero = $request->get('numero') ? $request->get('numero') : 6;
+        //     $config = [
+        //         'plano'=>1,
+        //         'operacaoParceiro'=>Qlib::zerofill($numero,5),
+        //         'nomeSegurado'=>'Programdor teste',
+        //         'dataNascimento'=>'1989-06-05',
+        //         'sexo'=>'F',
+        //         'uf'=>'MG',
+        //         'documento'=>'12345678909',
+        //         'inicioVigencia'=>'2025-03-25',
+        //         'fimVigencia'=>'2026-03-25',
+        //     ];
+        //     $ret = (new SulAmericaController)->contratacao($config);
+        // }
         // if($type=='cancela'){
         //     $config = [
         //         'numeroOperacao'=>'740442',
@@ -59,8 +60,10 @@ class TesteController extends Controller
         // // $ret = (new ContratoController)->update_token($token);
         // return $ret;
 
-        return view('clientes.import');
-        // return view('teste',$config);
+        // return view('clientes.import');
+        // return (new FinanceiroController)->campos(17);
+        $config=[];
+        return view('teste',$config);
     }
     public function ajax(){
         $limit = isset($_GET['limit']) ?$_GET['limit'] : 50;

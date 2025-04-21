@@ -44,6 +44,12 @@ class FinanceiroController extends Controller
             $this->taba = 'lcf_saidas';
         }
     }
+    /**
+     * Retorna o tipo de programa financeiro se 1 é para controle de padaria do contrario server para outras atividades
+     */
+    public function get_tipo_financeiro(){
+        return Qlib::qoption('tipo_financeiro');
+    }
     public function queryContas0($get=[],$config=false)
     {
 
@@ -144,13 +150,14 @@ class FinanceiroController extends Controller
         ];
         return $ret;
     }
-    public function queryContas($get=false,$config=false)
+    public function queryContas($get=false,$sec2=false)
     {
 
         $ret = false;
         $get = isset($_GET) ? $_GET:[];
         $ano = date('Y');
         $mes = date('m');
+        $sec2 = $sec2 ? $sec2 : $this->sec2;
         $ultimoDiaMes = Qlib::ultimoDiaMes($mes,$ano);
         $dataI = isset($get['dataI']) ? $get['dataI'] : date('Y-m').'-01';
         $dataF = isset($get['dataF']) ? $get['dataF'] : $ano.'-'.$mes.'-'.$ultimoDiaMes;
@@ -159,18 +166,18 @@ class FinanceiroController extends Controller
             'limit'=>isset($get['limit']) ? $get['limit']: 50,
             'order'=>isset($get['order']) ? $get['order']: 'desc',
         ];
-        if($this->sec2=='receitas'){
+        if($sec2=='receitas'){
             $startDate = Carbon::createFromFormat('Y-m-d', $dataI)->startOfDay();
             $endDate = Carbon::createFromFormat('Y-m-d', $dataF)->endOfDay();
             // $contas = financeiro::whereBetween('vencimento',[$startDate,$endDate])->
             $contas = financeiro::whereNull('id_fatura_fixa')->
-            where('tipo',$this->sec2)->
+            where('tipo',$sec2)->
             orderBy('vencimento',$config['order']);
-        }elseif($this->sec2=='despesas'){
+        }elseif($sec2=='despesas'){
             $startDate = Carbon::createFromFormat('Y-m-d', $dataI)->startOfDay();
             $endDate = Carbon::createFromFormat('Y-m-d', $dataF)->endOfDay();
             $contas = financeiro::whereBetween('vencimento',[$startDate,$endDate])->
-            where('tipo',$this->sec2)->
+            where('tipo',$sec2)->
             orderBy('vencimento',$config['order']);
 
         }
@@ -237,6 +244,60 @@ class FinanceiroController extends Controller
             // 'todos_inativos'=>['label'=>'Cadastros inativos','value'=>$contas_totais->inativos,'icon'=>'fas fa-archive'],
         ];
         return $ret;
+    }
+    public function index(Request $request){
+        $this->authorize('is_admin', $this->user);
+        //buscar os dados da página
+        $titulo = $this->title;
+        // dd($titulo);
+        $queryContas = $this->queryContas($_GET);
+        $queryContas['config']['exibe'] = 'html';
+        $routa = $this->routa;
+        $dados_form = [];
+        if($this->get_tipo_financeiro()==1){
+            if($this->sec2=='receitas'){
+                //gerenciamento de cadastro das receitas
+                $title_form = __('Cadastro das receitas');
+            }
+            if($this->sec2=='despesas'){
+                //gerenciamento de cadastro das despesas
+                $title_form = __('Cadastro das despesas');
+            }
+            $title = $titulo;
+            $this->view = 'admin.financeiro1';
+            $config = [
+                'ac'=>'cad',
+                'frm_id'=>'frm-posts',
+                'route'=>$this->routa,
+                'view'=>$this->view,
+                'arquivos'=>false,
+            ];
+            $campos = $this->campos();$value=[];
+
+            $dados_form = [
+                'config'=>$config,
+                'title_form'=>$title_form,
+                'titulo'=>$titulo,
+                'campos'=>$campos,
+                'value'=>$value,
+            ];
+        }else{
+            $this->view = 'admin.financeiro';
+        }
+        return view($this->view.'.index',[
+            'dados'=>$queryContas['contas'],
+            'title'=>$this->title,
+            'titulo'=>$titulo,
+            'dados_form'=>$dados_form,
+            'campos_tabela'=>$queryContas['campos'],
+            'post_totais'=>$queryContas['contas_totais'],
+            'titulo_tabela'=>$queryContas['tituloTabela'],
+            'arr_titulo'=>$queryContas['arr_titulo'],
+            'config'=>$queryContas['config'],
+            'routa'=>$routa,
+            'view'=>$this->view,
+            'i'=>0,
+        ]);
     }
     public function receitas(Request $request){
         $this->authorize('is_admin', $this->user);
@@ -482,116 +543,172 @@ class FinanceiroController extends Controller
         return view($this->view.'.index',$ret);
     }
 
-    // public function campos($id=false){
-    //     $dados = false;
-    //     if($id){
-    //         $dados = financeiro::Find($id);
-    //         if($dados->count()>0){
-    //             $dados = $dados->toArray();
-    //         }
-    //     }
+    public function campos($id=false,$dados=false,$type=false){
+        // $dados =  [];
+        if($id && !$dados){
+            $dados = financeiro::Find($id);
+            if($dados->count()>0){
+                $dados = $dados->toArray();
+            }
+        }
+        if(!is_array($dados)){
+            $dados = [];
+        }
 
-    //     $hidden_editor = '';
-    //     if($this->routa=='receitas'){
-    //         $label0 = __('DADOS DO CLIENTE');
-    //         $label1 = __('Cliente');
-    //     }elseif($this->routa=='despesas'){
-    //         $label0 = __('DADOS DO FORNECEDOR');
-    //         $label1 = __('Fornecedor');
-    //     }else{
-    //         $label0 = __('DADOS');
-    //         $label1 = '';
+        $hidden_editor = '';
+        if($this->routa=='receitas'){
+            $label0 = __('DADOS DO CLIENTE');
+            $label1 = __('Cliente');
+        }elseif($this->routa=='despesas'){
+            $label0 = __('DADOS DO FORNECEDOR');
+            $label1 = __('Fornecedor');
+        }else{
+            $label0 = __('DADOS');
+            $label1 = '';
 
-    //     }
-    //     $larg_campos = 6;
-    //     $rf = 'fornecedores';
-    //     $userC = new UserController(['route'=>$rf]);
-    //     $id_permision = $userC->id_permission_fornecedores();
-    //     $arr_opc = Qlib::sql_array("SELECT id,name,email FROM users WHERE ativo='s' AND id_permission='$id_permision'",'name','id');
-    //     $ret = [
-    //         'id'=>['label'=>'Id','active'=>true,'js'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
-    //         // 'post_type'=>['label'=>'tipo de post','active'=>false,'type'=>'hidden','exibe_busca'=>'d-none','event'=>'','tam'=>'2','value'=>$this->post_type],
-    //         'token'=>['label'=>'token','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
-    //         'html0'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h6>'.$label0.'</h6><hr class="mt-0 pb-0">'],
-    //         'id_cliente'=>[
-    //             'label'=>$label1,
-    //             'active'=>true,
-    //             'type'=>'selector',
-    //             'data_selector'=>[
-    //                 'campos'=>$userC->campos(),
-    //                 'route_index'=>route($rf.'.index'),
-    //                 'id_form'=>'frm-'.$rf,
-    //                 'action'=>route($rf.'.store'),
-    //                 'campo_id'=>'id',
-    //                 'campo_bus'=>'name',
-    //                 'label'=>$label1,
-    //             ],'arr_opc'=>$arr_opc,'exibe_busca'=>'d-block',
-    //             'event'=>'required',
-    //             //'event'=>'onchange=carregaMatricula($(this).val())',
-    //             'tam'=>'12',
-    //             'class'=>'select2',
-    //             'value'=>@$_GET['id_cliente'],
-    //         ],
-    //         'tipo'=>['label'=>'tipo','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','value'=>$this->routa,'event'=>'','tam'=>'2'],
-    //         'html1'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h5>Dados da Conta</h5><hr>'],
-    //         'numero'=>['label'=>'Numero','active'=>true,'placeholder'=>'','type'=>'number','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
-    //         'valor'=>['label'=>'Valor*','active'=>true,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos,'validate'=>['required','string']],
-    //         'emissao'=>['label'=>'Data de Emissão*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //         'vencimento'=>['label'=>'Data de vencimento*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //         'descricao'=>['label'=>'Descrição','active'=>true,'placeholder'=>'Uma síntese do um post','type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12'],
-    //         // 'ativo'=>['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'3','arr_opc'=>['s'=>'Sim','n'=>'Não']],
-    //         // 'post_content'=>['label'=>'Conteudo','active'=>false,'type'=>'textarea','exibe_busca'=>'d-block','event'=>$hidden_editor,'tam'=>'12','class_div'=>'','class'=>'summernote','placeholder'=>__('Escreva seu conteúdo aqui..')],
-    //         'pago'=>['label'=>'Pagar','active'=>true,'tab'=>$this->tab ,'campo'=>'pago' ,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'6','arr_opc'=>['s'=>'Pago','n'=>'A pagar'],'tab'=>'financeiro'],
-    //         // 'vencimento'=>['label'=>'Data de vencimento*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
-    //     ];
-    //     if(is_array($dados)){
-    //         $ret['id_cliente']=[
-    //                 'label'=>$label1,
-    //                 'active'=>false,
-    //                 'type'=>'html_vinculo',
-    //                 'exibe_busca'=>'d-none',
-    //                 'event'=>'',
-    //                 'tam'=>'12',
-    //                 'script'=>'',
-    //                 'data_selector'=>[
-    //                     'campos'=>$userC->campos(),
-    //                     'route_index'=>route('fornecedores.index'),
-    //                     'id_form'=>'frm-fornecedores',
-    //                     // 'tipo'=>'array', // int para somente um ou array para vários
-    //                     'tipo'=>'text', // int para somente um ou array para vários
-    //                     'action'=>route('fornecedores.store'),
-    //                     'campo_id'=>'id',
-    //                     'campo_bus'=>'name',
-    //                     'campo'=>'id_cliente',
-    //                     'value'=>[],
-    //                     'label'=>'Informações do lote',
-    //                     'table'=>[
-    //                         //'id'=>['label'=>'Id','type'=>'text'],
-    //                         'name'=>['label'=>'Nome','type'=>'text', //campos que serão motands na tabela
-    //                         'conf_sql'=>[
-    //                             'tab'=>'users',
-    //                             'campo_bus'=>'id',
-    //                             'select'=>'name',
-    //                             'param'=>['name','email'],
-    //                             ]
-    //                         ],
-    //                         'email'=>['label'=>'Email','type'=>'text'], //campos que serão motands na tabela
-    //                     ],
-    //                     'tab' =>'users',
-    //                     'placeholder' =>'Digite somente o nome do '.$label1.'...',
-    //                     'janela'=>[
-    //                         'url'=>route('fornecedores.create').'',
-    //                         // 'param'=>['name','cnpj','email'],
-    //                         'param'=>[],
-    //                         'form-param'=>'',
-    //                     ],
-    //                     'salvar_primeiro' =>false,//exigir cadastro do vinculo antes de cadastrar este
-    //                 ],
-    //                 'script' => false,//'familias.loteamento', //script admicionar
-    //         ];
-    //     }
-    //     return $ret;
-    // }
+        }
+        $larg_campos = 12;
+        $rf = 'fornecedores';
+        $routa_conta = 'contas';
+        $routa_forma = 'formas_pagamento';
+        $userC = new UserController(['route'=>$rf]);
+        $postC = new PostsController();
+        // $id_permision = $userC->id_permission_fornecedores();
+
+        $arr_opc_contas = Qlib::sql_array("SELECT ID,post_title FROM posts WHERE post_status='publish' AND post_type='contas'",'post_title','ID');
+        $arr_opc_forma = Qlib::sql_array("SELECT ID,post_title FROM posts WHERE post_status='publish' AND post_type='$routa_forma'",'post_title','ID');
+        $ret = [
+            'id'=>['label'=>'Id','active'=>true,'js'=>true,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            // 'post_type'=>['label'=>'tipo de post','active'=>false,'type'=>'hidden','exibe_busca'=>'d-none','event'=>'','tam'=>'2','value'=>$this->post_type],
+            'token'=>['label'=>'token','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','event'=>'','tam'=>'2'],
+            // 'html0'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h6>'.$label0.'</h6><hr class="mt-0 pb-0">'],
+            'vencimento'=>['label'=>'Data','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
+            'conta'=>[
+                'label'=>'Caixa*',
+                'active'=>true,
+                'type'=>'selector',
+                'data_selector'=>[
+                    'campos'=>$postC->campos(false,'contas'),
+                    'route_index'=>route($routa_conta.'.index'),
+                    'id_form'=>'frm-'.$routa_conta,
+                    'action'=>route($routa_conta.'.store'),
+                    'campo_id'=>'ID',
+                    'campo_bus'=>'post_title',
+                    'label'=>$label1,
+                ],'arr_opc'=>$arr_opc_contas,'exibe_busca'=>'d-block',
+                'event'=>'required',
+                //'event'=>'onchange=carregaMatricula($(this).val())',
+                'tam'=>'12',
+                'class'=>'',
+                'value'=>@$_GET['conta'],
+            ],
+            'forma_pagamento'=>[
+                'label'=>'Forma de Pagamento*',
+                'active'=>true,
+                'type'=>'selector',
+                'data_selector'=>[
+                    'campos'=>$postC->campos(false,'formas_pagamento'),
+                    'route_index'=>route($routa_forma.'.index'),
+                    'id_form'=>'frm-'.$routa_forma,
+                    'action'=>route($routa_forma.'.store'),
+                    'campo_id'=>'ID',
+                    'campo_bus'=>'post_title',
+                    'label'=>$label1,
+                ],'arr_opc'=>$arr_opc_forma,'exibe_busca'=>'d-block',
+                'event'=>'required',
+                //'event'=>'onchange=carregaMatricula($(this).val())',
+                'tam'=>'12',
+                'class'=>'',
+                'value'=>@$_GET['conta'],
+            ],
+            // 'id_cliente'=>[
+            //     'label'=>$label1,
+            //     'active'=>true,
+            //     'type'=>'selector',
+            //     'data_selector'=>[
+            //         'campos'=>$userC->campos(),
+            //         'route_index'=>route($rf.'.index'),
+            //         'id_form'=>'frm-'.$rf,
+            //         'action'=>route($rf.'.store'),
+            //         'campo_id'=>'id',
+            //         'campo_bus'=>'name',
+            //         'label'=>$label1,
+            //     ],'arr_opc'=>$arr_opc,'exibe_busca'=>'d-block',
+            //     'event'=>'required',
+            //     //'event'=>'onchange=carregaMatricula($(this).val())',
+            //     'tam'=>'12',
+            //     'class'=>'select2',
+            //     'value'=>@$_GET['id_cliente'],
+            // ],
+            'tipo'=>['label'=>'tipo','active'=>false,'type'=>'hidden','exibe_busca'=>'d-block','value'=>$this->routa,'event'=>'','tam'=>'2'],
+            // 'html1'=>['label'=>'titulo','active'=>false,'type'=>'html_script','script'=>'<h5>Dados da Conta</h5><hr>'],
+            // 'numero'=>['label'=>'Numero','active'=>true,'placeholder'=>'','type'=>'number','exibe_busca'=>'d-block','event'=>'','tam'=>$larg_campos],
+            'valor'=>['label'=>'Valor*','active'=>true,'placeholder'=>'','type'=>'moeda','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos,'validate'=>['required','string']],
+            // 'emissao'=>['label'=>'Data de Emissão*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
+            'descricao'=>['label'=>'Descrição','active'=>false,'placeholder'=>'Uma síntese do um post','type'=>'textarea','exibe_busca'=>'d-block','event'=>'','tam'=>'12'],
+            // 'ativo'=>['label'=>'Liberar','active'=>true,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'3','arr_opc'=>['s'=>'Sim','n'=>'Não']],
+            // 'post_content'=>['label'=>'Conteudo','active'=>false,'type'=>'textarea','exibe_busca'=>'d-block','event'=>$hidden_editor,'tam'=>'12','class_div'=>'','class'=>'summernote','placeholder'=>__('Escreva seu conteúdo aqui..')],
+            'pago'=>['label'=>'Pago','active'=>true,'tab'=>$this->tab ,'campo'=>'pago' ,'type'=>'chave_checkbox','value'=>'s','valor_padrao'=>'s','exibe_busca'=>'d-block','event'=>'','tam'=>'6','arr_opc'=>['s'=>'Pago','n'=>'A pagar'],'tab'=>'financeiro'],
+            // 'vencimento'=>['label'=>'Data de vencimento*','active'=>true,'placeholder'=>'','type'=>'date','exibe_busca'=>'d-block','event'=>'required','tam'=>$larg_campos],
+        ];
+        // if(is_array($dados)){
+        //     $ret['id_cliente']=[
+        //             'label'=>$label1,
+        //             'active'=>false,
+        //             'type'=>'html_vinculo',
+        //             'exibe_busca'=>'d-none',
+        //             'event'=>'',
+        //             'tam'=>'12',
+        //             'script'=>'',
+        //             'data_selector'=>[
+        //                 'campos'=>$userC->campos(),
+        //                 'route_index'=>route('fornecedores.index'),
+        //                 'id_form'=>'frm-fornecedores',
+        //                 // 'tipo'=>'array', // int para somente um ou array para vários
+        //                 'tipo'=>'text', // int para somente um ou array para vários
+        //                 'action'=>route('fornecedores.store'),
+        //                 'campo_id'=>'id',
+        //                 'campo_bus'=>'name',
+        //                 'campo'=>'id_cliente',
+        //                 'value'=>[],
+        //                 'label'=>'Informações do lote',
+        //                 'table'=>[
+        //                     //'id'=>['label'=>'Id','type'=>'text'],
+        //                     'name'=>['label'=>'Nome','type'=>'text', //campos que serão motands na tabela
+        //                     'conf_sql'=>[
+        //                         'tab'=>'users',
+        //                         'campo_bus'=>'id',
+        //                         'select'=>'name',
+        //                         'param'=>['name','email'],
+        //                         ]
+        //                     ],
+        //                     'email'=>['label'=>'Email','type'=>'text'], //campos que serão motands na tabela
+        //                 ],
+        //                 'tab' =>'users',
+        //                 'placeholder' =>'Digite somente o nome do '.$label1.'...',
+        //                 'janela'=>[
+        //                     'url'=>route('fornecedores.create').'',
+        //                     // 'param'=>['name','cnpj','email'],
+        //                     'param'=>[],
+        //                     'form-param'=>'',
+        //                 ],
+        //                 'salvar_primeiro' =>false,//exigir cadastro do vinculo antes de cadastrar este
+        //             ],
+        //             'script' => false,//'familias.loteamento', //script admicionar
+        //     ];
+        // }
+        // dd(count($dados));
+        if(count($dados)>0){
+            foreach ($dados as $key => $value) {
+                if(isset($ret[$key])){
+                    $ret[$key]['value'] = $value;
+                }
+            }
+        }
+        // if($id)
+        // dd($ret);
+        return $ret;
+    }
     public function create()
     {
         $user = $this->user;
@@ -636,6 +753,7 @@ class FinanceiroController extends Controller
         $ajax = isset($dados['ajax'])?$dados['ajax']:'n';
         $defaultDate = '1900-01-01';
         $dados['pago'] = isset($dados['pago'])?$dados['pago']:'n';
+        $dados['token'] = isset($dados['token'])?$dados['token']:uniqid();
         if($dados['pago'] == 's'){
             //caso o campo pago vem sim e não tem uma data de pagameto o sistema assume que o pagamento foi na data do vencimento importante para lançamentos futuros ou debito automatico
             $dados['data_pagamento'] = isset($dados['vencimento']) ? $dados['vencimento'] : $defaultDate;
@@ -647,7 +765,8 @@ class FinanceiroController extends Controller
         //remover variaveis que não tenham um campo no banco de dados
         $dados = (new DefaultController())->sanitizeDados($dados);
         // dd($dados);
-        $reg_id = financeiro::create($dados);
+        $reg_id = financeiro::create($dados)->id;
+        $campos = [];
         if($reg_id){
             $color = 'success';
             $idCad = $reg_id;
@@ -657,6 +776,7 @@ class FinanceiroController extends Controller
             if(isset($dados['id_fatura_fixa']) && !empty($dados['id_fatura_fixa'])){
 
             }
+            $campos = $this->campos($idCad);
         }else{
             $color = 'danger';
             $idCad = 0;
@@ -668,7 +788,8 @@ class FinanceiroController extends Controller
             'color'=>$color,
             'idCad'=>$idCad,
             'exec'=>$exec,
-            'dados'=>$dados
+            'dados'=>$dados,
+            'campos'=>$campos,
         ];
 
         if($ajax=='s'){
