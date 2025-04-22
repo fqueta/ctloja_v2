@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\admin\FinanceiroController as AdminFinanceiroController;
 use App\Http\Controllers\Controller;
+use App\Models\admin\financeiro;
 use Illuminate\Http\Request;
 
 use function PHPUnit\Framework\isArray;
@@ -39,5 +40,18 @@ class FinanceiroController extends Controller
             $ret['dados_table'] = $arr;
         }
         return $ret;
+    }
+    public function show($id){
+        $d = financeiro::find($id);
+        $ret['exec'] = false;
+        $ret['data'] = [];
+        // dd();
+        if($d->count()){
+            $d = $d->toArray();
+            $ret['data'] = $d;
+            $ret['campos'] = $this->Fc->campos(false,$d);
+
+        }
+        return response()->json($ret);
     }
 }

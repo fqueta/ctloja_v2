@@ -70,7 +70,7 @@ function financeiro_carregarDadosDoServidor(tabela,campo_bus,routa) {
     });
 }
 function editar_linha_tabela(id){
-    var d=document.getElementById('tab_d_77').value,arrd=decodeArray(d);
+    var d=document.getElementById('tab_d_'+id).value,arrd=decodeArray(d);
     console.log(arrd);
 
 }
